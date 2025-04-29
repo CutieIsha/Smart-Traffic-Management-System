@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detected License Plates</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --surface-hover: #2c2c2c;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 2rem;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .plate-card {
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+            background-color: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        
+        .plate-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .plate-image {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card-text {
+            margin-top: 1rem;
+        }
+        
+        .text-muted {
+            color: var(--text-secondary);
+        }
+        
+        .controls {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--surface-hover);
+            color: var(--text);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .no-plates {
+            text-align: center;
+            padding: 3rem;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        
+        .no-plates h3 {
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+        
+        .no-plates p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+        
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 0 15px;
+        }
+        
+        .col-sm-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 15px;
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            background-color: var(--surface);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .col-md-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .col-md-3, .col-sm-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Detected License Plates</h1>
+            <p>License plates extracted from video footage</p>
+        </div>
+        
+        <div class="controls">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Process New Video
+            </a>
+            <a href="{{ url_for('analysis') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Return to Analysis
+            </a>
+        </div>
+        
+        {% if plates %}
+            <div class="row">
+                {% for plate in plates %}
+                <div class="col-md-3 col-sm-6">
+                    <div class="plate-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Plate #{{ loop.index }}</h5>
+                            <img src="{{ url_for('plate_file', filename=plate) }}" class="plate-image" alt="License Plate">
+                            <p class="card-text">
+                                <small class="text-muted">Filename: {{ plate }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-plates">
+                <h3>No license plates detected yet</h3>
+                <p>Process a video to detect license plates</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload Video
+                </a>
+            </div>
+        {% endif %}
+        
+        <footer>
+            <p>Smart Traffic Management System &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

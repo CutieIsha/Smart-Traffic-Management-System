@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Violation Detection - Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --surface-hover: #2c2c2c;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding-top: 2rem;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .header h1, .header p {
+            color: var(--text);
+        }
+        
+        .video-container {
+            position: relative;
+            margin: 0 auto;
+            max-width: 1100px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        
+        .video-feed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .controls {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .legend {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.07);
+            color: var(--text);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-info {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .alert {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        
+        .alert-danger {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="display-4">Traffic Violation Detection</h1>
+            <p class="lead">Analyzing video for traffic signal violations</p>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-danger" role="alert">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" class="video-feed" id="videoFeed">
+            <div class="loading" id="loadingIndicator">
+                <div>
+                    <div class="spinner-border text-light" role="status"></div>
+                    <p class="mt-2">Loading video...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <a href="{{ url_for('index') }}" class="btn btn-primary"><i class="fas fa-home"></i> Select Different Video</a>
+                       <a href="{{ url_for('download_csv') }}" class="btn btn-success"><i class="fas fa-download"></i> Download Violations CSV</a>
+        </div>
+        
+        <div class="row legend">
+            <h5>Detection Legend:</h5>
+            <div class="col-md-6">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(255, 0, 0);"></div>
+                    <span>Red Light Region</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(0, 255, 0);"></div>
+                    <span>Green Light Region</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(255, 0, 0);"></div>
+                    <span>Violation (Red boundary)</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(255, 0, 0);"></div>
+                    <span>Red Light Status</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(0, 255, 0);"></div>
+                    <span>Green Light Status</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgb(0, 0, 255);"></div>
+                    <span>Region of Interest</span>
+                </div>
+            </div>
+            <div class="col-12 mt-3">
+                <p><strong>How it works:</strong> The system detects vehicles moving through the region of interest (blue rectangle) while the traffic light is red, counting each as a violation.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Traffic Violation Detection System &copy; 2025</p>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the video feed image
+            const videoFeed = document.getElementById('video-feed');
+            
+            // Create a completion message element (initially hidden)
+            const completionMessage = document.createElement('div');
+            completionMessage.innerHTML = `
+                <div class="alert alert-success mt-4">
+                    <h4>Video Processing Complete</h4>
+                    <p>All traffic violations have been detected and recorded.</p>
+                    <a href="/violations" class="btn btn-primary"><i class="fas fa-eye"></i> View Violations</a>
+                    <a href="/" class="btn btn-secondary"><i class="fas fa-redo"></i> Process Another Video</a>
+                </div>
+            `;
+            completionMessage.style.display = 'none';
+            videoFeed.parentNode.appendChild(completionMessage);
+            
+            // Create a canvas element for image processing
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Function to check if the frame contains the completion message
+            function checkCompletion() {
+                // Only check every second to avoid performance issues
+                if (!videoFeed.complete) return;
+                
+                canvas.width = videoFeed.width;
+                canvas.height = videoFeed.height;
+                ctx.drawImage(videoFeed, 0, 0);
+                
+                // Get image data from the center of the frame
+                const imageData = ctx.getImageData(
+                    Math.floor(canvas.width/4), 
+                    Math.floor(canvas.height/2) - 10, 
+                    Math.floor(canvas.width/2), 
+                    20
+                ).data;
+                
+                // Check if pixels contain white text (processing complete message)
+                let whitePixelCount = 0;
+                for (let i = 0; i < imageData.length; i += 4) {
+                    if (imageData[i] > 200 && imageData[i+1] > 200 && imageData[i+2] > 200) {
+                        whitePixelCount++;
+                    }
+                }
+                
+                // If we have enough white pixels, assume it's the completion message
+                if (whitePixelCount > 100) {
+                    videoFeed.style.display = 'none';
+                    completionMessage.style.display = 'block';
+                    clearInterval(checkInterval);
+                }
+            }
+            
+            // Check for completion every second
+            const checkInterval = setInterval(checkCompletion, 1000);
+        });
+        </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Hide loading indicator when image loads
+        document.getElementById('videoFeed').onload = function() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        };
+        
+        // Show loading indicator if image takes too long or fails
+        setTimeout(function() {
+            if (window.getComputedStyle(document.getElementById('loadingIndicator')).display !== 'none') {
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <div class="text-center">
+                        <p>Video processing is taking longer than expected...</p>
+                        <p>This might be due to a large video file or high processing requirements.</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-light mt-3"><i class="fas fa-home"></i> Return to home</a>
+                    </div>
+                `;
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

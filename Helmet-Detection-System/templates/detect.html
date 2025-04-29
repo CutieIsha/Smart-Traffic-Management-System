@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>No Helmet Detection Analysis</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --surface-hover: #2c2c2c;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding-top: 2rem;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .video-container {
+            margin: 20px auto;
+            max-width: 1024px;
+            position: relative;
+        }
+        
+        .video-feed {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: var(--text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: var(--text);
+        }
+        
+        .stop-button {
+            background-color: var(--danger);
+        }
+        
+        .stop-button:hover {
+            background-color: #d32f2f;
+        }
+        
+        .download-button {
+            background-color: var(--success);
+        }
+        
+        .download-button:hover {
+            background-color: #388e3c;
+        }
+        
+        .button-container {
+            margin: 20px 0;
+        }
+        
+        h1 {
+            color: var(--text);
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .status-indicator {
+            font-size: 18px;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+        
+        .lead {
+            color: var(--text-secondary);
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="display-4">No Helmet Detection</h1>
+            <p class="lead">Detection Analysis in Progress</p>
+        </div>
+        
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" class="video-feed">
+        </div>
+        
+        <p class="status-indicator">Detection in progress...</p>
+        
+        <div class="button-container">
+            <button id="stopButton" class="button stop-button"><i class="fas fa-stop"></i> Stop Detection</button>
+            <a href="{{ url_for('view_plates') }}" class="button"><i class="fas fa-list"></i> View Detected Plates</a>
+            <a href="{{ url_for('download_csv') }}" class="button download-button"><i class="fas fa-download"></i> Download Results (CSV)</a>
+            <a href="{{ url_for('index') }}" class="button"><i class="fas fa-upload"></i> Upload New Video</a>
+        </div>
+    </div>
+    
+    <footer>
+        <p>No Helmet Detection System &copy; 2025</p>
+    </footer>
+    
+    <script>
+        document.getElementById('stopButton').addEventListener('click', function() {
+            // Disable the button to prevent multiple clicks
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+            
+            // Send request to stop detection
+            fetch('/stop_detection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                this.innerHTML = '<i class="fas fa-check"></i> Detection Stopped';
+                document.querySelector('.status-indicator').textContent = 'Detection stopped. You can view the results.';
+                document.querySelector('.status-indicator').style.color = 'var(--danger)';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error Stopping';
+                this.disabled = false;
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

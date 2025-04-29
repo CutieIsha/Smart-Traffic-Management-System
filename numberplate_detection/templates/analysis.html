@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Plate Detection Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --surface-hover: #2c2c2c;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        h1 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            margin-top: 20px;
+        }
+        
+        .video-container {
+            margin: 20px auto;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .video-feed {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        
+        .button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: var(--text);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        .button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .stop-button {
+            background-color: var(--danger);
+        }
+        
+        .stop-button:hover {
+            background-color: #d32f2f;
+        }
+        
+        .button-container {
+            margin: 20px 0;
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            background-color: var(--surface);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>License Plate Detection</h1>
+        
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" class="video-feed">
+        </div>
+        
+        <div class="button-container">
+            <button id="stopButton" class="button stop-button"><i class="fas fa-stop"></i> Stop Detection</button>
+            <a href="{{ url_for('view_plates') }}" class="button"><i class="fas fa-list"></i> View Detected Plates</a>
+            <a href="{{ url_for('index') }}" class="button"><i class="fas fa-upload"></i> Upload New Video</a>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Smart Traffic Management System &copy; 2025</p>
+    </footer>
+
+    <script>
+        document.getElementById('stopButton').addEventListener('click', function() {
+            // Disable the button to prevent multiple clicks
+            this.disabled = true;
+            this.textContent = 'Stopping...';
+            
+            // Send request to stop detection
+            fetch('/stop_detection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                this.textContent = 'Detection Stopped';
+                this.innerHTML = '<i class="fas fa-check"></i> Detection Stopped';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.textContent = 'Error Stopping';
+                this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error Stopping';
+                this.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
